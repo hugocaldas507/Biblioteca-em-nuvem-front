@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gerenciamento de Livros - Biblioteca em Nuvem</title>
+    <style>
+        :root {
+            --color-main: #5F7A61;
+            --color-dark: #49634B;
+            --color-light: #EEF4EE;
+            --color-bg: #F9FBF9;
+            --color-text: #2C3E2E;
+            --color-danger: #D9534F;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--color-bg);
+            color: var(--color-text);
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        header {
+            background-color: var(--color-main);
+            color: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            margin-bottom: 20px;
+            border: 1px solid var(--color-light);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-size: 0.9rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            color: var(--color-dark);
+        }
+
+        input, select {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--color-main);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.2s;
+        }
+
+        .btn-main {
+            background-color: var(--color-main);
+            color: white;
+        }
+
+        .btn-main:hover {
+            background-color: var(--color-dark);
+        }
+
+        .btn-cancel {
+            background-color: #ccc;
+            color: #333;
+            margin-left: 10px;
+        }
+
+        .btn-danger {
+            background-color: var(--color-danger);
+            color: white;
+            padding: 5px 10px;
+            font-size: 0.85rem;
+        }
+
+        .btn-edit {
+            background-color: var(--color-main);
+            color: white;
+            padding: 5px 10px;
+            font-size: 0.85rem;
+            margin-right: 5px;
+        }
+
+        .search-bar {
+            margin-bottom: 15px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid var(--color-light);
+        }
+
+        th {
+            background-color: var(--color-light);
+            color: var(--color-dark);
+        }
+
+        tr:hover {
+            background-color: #f5f8f5;
+        }
+
+        .config-panel {
+            background-color: var(--color-light);
+            padding: 10px 15px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Gerenciamento de Acervo de Livros</h1>
+    </header>
+
+    <!-- Painel para alternar/testar conexão -->
+    <div class="config-panel">
+        <label>
+            <input type="checkbox" id="mock-toggle"> Usar Modo Mock (Sem API)
+        </label>
+        <span>URL da API: <strong>http://localhost:8080/livros</strong></span>
+    </div>
+
+    <!-- Formulário de Cadastro e Edição -->
+    <div class="card">
+        <h2 id="form-title" style="margin-bottom: 15px; color: var(--color-dark);">Adicionar Novo Livro</h2>
+        <form id="book-form">
+            <input type="hidden" id="book-id">
+            
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="titulo">Título *</label>
+                    <input type="text" id="titulo" required placeholder="Ex: O Senhor dos Anéis">
+                </div>
+                <div class="form-group">
+                    <label for="autor">Autor *</label>
+                    <input type="text" id="autor" required placeholder="Ex: J.R.R. Tolkien">
+                </div>
+                <div class="form-group">
+                    <label for="isbn">ISBN *</label>
+                    <input type="text" id="isbn" required placeholder="Ex: 978-8533613379">
+                </div>
+                <div class="form-group">
+                    <label for="genero">Gênero</label>
+                    <input type="text" id="genero" placeholder="Ex: Fantasia">
+                </div>
+                <div class="form-group">
+                    <label for="ano">Ano de Publicação</label>
+                    <input type="number" id="ano" placeholder="Ex: 1954">
+                </div>
+                <div class="form-group">
+                    <label for="quantidade">Quantidade *</label>
+                    <input type="number" id="quantidade" min="1" value="1" required>
+                </div>
+            </div>
+
+            <button type="submit" id="btn-save" class="btn btn-main">+ Salvar Livro</button>
+            <button type="button" id="btn-cancel" class="btn btn-cancel" style="display: none;">Cancelar Edição</button>
+        </form>
+    </div>
+
+    <!-- Tabela e Filtros -->
+    <div class="card">
+        <h2 style="margin-bottom: 15px; color: var(--color-dark);">Livros Cadastrados</h2>
+        <input type="text" id="search-input" class="search-bar" placeholder="Buscar por título, autor ou ISBN..." style="width: 100%;">
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Título</th>
+                    <th>Autor</th>
+                    <th>ISBN</th>
+                    <th>Gênero</th>
+                    <th>Qtd.</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody id="books-table-body">
+                <!-- Linhas inseridas dinamicamente via JS -->
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+    // Configuração base da API Spring Boot
+    const API_BASE_URL = 'http://localhost:8080/livros';
+
+    let booksList = [];
+    let isMockMode = false;
+
+    // Dados para testes locais sem backend
+    let mockBooks = [
+        { id: 1, titulo: "Dom Casmurro", autor: "Machado de Assis", isbn: "9788535902778", genero: "Romance", ano: 1899, quantidade: 3 },
+        { id: 2, titulo: "O Alquimista", autor: "Paulo Coelho", isbn: "9788576653721", genero: "Ficção", ano: 1988, quantidade: 5 }
+    ];
+
+    // Elementos da DOM
+    const form = document.getElementById('book-form');
+    const formTitle = document.getElementById('form-title');
+    const bookIdInput = document.getElementById('book-id');
+    const btnSave = document.getElementById('btn-save');
+    const btnCancel = document.getElementById('btn-cancel');
+    const tableBody = document.getElementById('books-table-body');
+    const searchInput = document.getElementById('search-input');
+    const mockToggle = document.getElementById('mock-toggle');
+
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', () => {
+        carregarLivros();
+
+        form.addEventListener('submit', salvarLivro);
+        btnCancel.addEventListener('click', limparFormulario);
+        searchInput.addEventListener('input', filtrarLivros);
+        mockToggle.addEventListener('change', (e) => {
+            isMockMode = e.target.checked;
+            carregarLivros();
+        });
+    });
+
+    // GET: Listar Livros
+    async function carregarLivros() {
+        if (isMockMode) {
+            booksList = [...mockBooks];
+            renderizarTabela(booksList);
+            return;
+        }
+
+        try {
+            const response = await fetch(API_BASE_URL);
+            if (!response.ok) throw new Error('Erro ao conectar com a API');
+            booksList = await response.json();
+            renderizarTabela(booksList);
+        } catch (error) {
+            console.warn('Falha na requisição API. Ativando modo Mock para visualização.', error);
+            booksList = [...mockBooks];
+            renderizarTabela(booksList);
+        }
+    }
+
+    // Renderizar linhas da tabela
+    function renderizarTabela(lista) {
+        tableBody.innerHTML = '';
+
+        if (lista.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center;">Nenhum livro encontrado.</td></tr>';
+            return;
+        }
+
+        lista.forEach(livro => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td><strong>${livro.titulo}</strong></td>
+                <td>${livro.autor}</td>
+                <td>${livro.isbn}</td>
+                <td>${livro.genero || '-'}</td>
+                <td>${livro.quantidade}</td>
+                <td>
+                    <button class="btn btn-edit" onclick="prepararEdicao(${livro.id})">Editar</button>
+                    <button class="btn btn-danger" onclick="excluirLivro(${livro.id})">Excluir</button>
+                </td>
+            `;
+            tableBody.appendChild(tr);
+        });
+    }
+
+    // POST / PUT: Salvar ou Atualizar
+    async function salvarLivro(event) {
+        event.preventDefault();
+
+        const id = bookIdInput.value;
+        const livroPayload = {
+            titulo: document.getElementById('titulo').value,
+            autor: document.getElementById('autor').value,
+            isbn: document.getElementById('isbn').value,
+            genero: document.getElementById('genero').value,
+            ano: parseInt(document.getElementById('ano').value) || null,
+            quantidade: parseInt(document.getElementById('quantidade').value) || 1
+        };
+
+        if (isMockMode) {
+            if (id) {
+                const index = mockBooks.findIndex(b => b.id == id);
+                mockBooks[index] = { id: parseInt(id), ...livroPayload };
+            } else {
+                mockBooks.push({ id: Date.now(), ...livroPayload });
+            }
+            limparFormulario();
+            carregarLivros();
+            return;
+        }
+
+        try {
+            const url = id ? `${API_BASE_URL}/${id}` : API_BASE_URL;
+            const method = id ? 'PUT' : 'POST';
+
+            const response = await fetch(url, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(livroPayload)
+            });
+
+            if (response.ok) {
+                limparFormulario();
+                carregarLivros();
+            } else {
+                alert('Erro ao salvar livro na API.');
+            }
+        } catch (error) {
+            alert('Erro de conexão ao salvar livro.');
+        }
+    }
+
+    // Preencher formulário para edição
+    function prepararEdicao(id) {
+        const livro = booksList.find(b => b.id == id);
+        if (!livro) return;
+
+        bookIdInput.value = livro.id;
+        document.getElementById('titulo').value = livro.titulo;
+        document.getElementById('autor').value = livro.autor;
+        document.getElementById('isbn').value = livro.isbn;
+        document.getElementById('genero').value = livro.genero || '';
+        document.getElementById('ano').value = livro.ano || '';
+        document.getElementById('quantidade').value = livro.quantidade;
+
+        formTitle.textContent = 'Editar Livro';
+        btnSave.textContent = 'Salvar Alterações';
+        btnCancel.style.display = 'inline-block';
+        
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // DELETE: Remover
+    async function excluirLivro(id) {
+        if (!confirm('Tem certeza que deseja excluir este livro?')) return;
+
+        if (isMockMode) {
+            mockBooks = mockBooks.filter(b => b.id != id);
+            carregarLivros();
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_BASE_URL}/${id}`, { method: 'DELETE' });
+            if (response.ok) {
+                carregarLivros();
+            } else {
+                alert('Erro ao excluir livro na API.');
+            }
+        } catch (error) {
+            alert('Erro de conexão ao excluir livro.');
+        }
+    }
+
+    // Limpar formulário
+    function limparFormulario() {
+        bookIdInput.value = '';
+        form.reset();
+        formTitle.textContent = 'Adicionar Novo Livro';
+        btnSave.textContent = '+ Salvar Livro';
+        btnCancel.style.display = 'none';
+    }
+
+    // Filtro de busca na tabela
+    function filtrarLivros() {
+        const termo = searchInput.value.toLowerCase();
+        const filtrados = booksList.filter(livro => 
+            livro.titulo.toLowerCase().includes(termo) ||
+            livro.autor.toLowerCase().includes(termo) ||
+            livro.isbn.toLowerCase().includes(termo)
+        );
+        renderizarTabela(filtrados);
+    }
+</script>
+
+</body>
+</html>
